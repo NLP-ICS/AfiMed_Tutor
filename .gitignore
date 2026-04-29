@@ -20,6 +20,9 @@ data/afrimedqa_mcq_test.jsonl
 data/afrimedqa_saq.jsonl
 data/question_embeddings.npy
 
+# Report files
+report/
+
 # Notebook outputs
 notebooks/.ipynb_checkpoints/
 
