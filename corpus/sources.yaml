@@ -1,0 +1,35 @@
+sources:
+  - id: sa_phc_stg_2024
+    title: "South Africa STG and EML, PHC, 8th edition (2024)"
+    primary_url: "https://www.health.gov.za/wp-content/uploads/2025/07/Primary-Healthcare-Standard-Treatment-Guidelines-and-Essential-Medicines-List-8th-Edition-2024.pdf"
+    mirror_url: null
+    license: "Non-commercial use permitted"
+    family: "sa_stg"
+
+  - id: sa_hospital_stg_2024
+    title: "South Africa STG and EML, Hospital Adults, 6th edition (2024)"
+    primary_url: "https://www.sahivsoc.org/Files/Hospital-Level-Adults-Standard-Treatment-Guidelines-and-EMP-6th-Edition-2024.pdf"
+    mirror_url: null
+    license: "Non-commercial use permitted"
+    family: "sa_stg"
+
+  - id: who_imci_2014
+    title: "WHO IMCI Chart Booklet (March 2014)"
+    primary_url: "https://cdn.who.int/media/docs/default-source/mca-documents/child/imci-integrated-management-of-childhood-illness/imci-in-service-training/imci-chart-booklet.pdf"
+    mirror_url: null
+    license: "CC BY-NC-SA 3.0 IGO"
+    family: "who_imci"
+
+  - id: ghana_stg_2017
+    title: "Ghana STG, 7th edition (2017)"
+    primary_url: "https://www.moh.gov.gh/wp-content/uploads/2020/07/GHANA-STG-2017-1.pdf"
+    mirror_url: "https://www.medbox.org/dl/618e883ca0d467358178bb72"
+    license: "CC tagged on medbox"
+    family: "ghana_stg"
+
+  - id: kenya_cg_3rd
+    title: "Kenya Clinical Guidelines for Common Conditions (3rd edition)"
+    primary_url: "https://extranet.who.int/ncdccs/Data/ken_D1_clinical%20guidelines%20for%20management%20and%20referral%20of%20common%20conditions.pdf"
+    mirror_url: null
+    license: "Government publication"
+    family: "kenya_cg"

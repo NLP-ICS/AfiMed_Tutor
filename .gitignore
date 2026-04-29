@@ -1,0 +1,31 @@
+.env
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+dist/
+build/
+*.egg-info/
+
+# Corpus artifacts (large files)
+corpus/raw/
+corpus/faiss.index
+corpus/chunks.jsonl
+corpus/chunks_meta.jsonl
+
+# Data artifacts
+data/afrimedqa_mcq_pool.jsonl
+data/afrimedqa_mcq_test.jsonl
+data/afrimedqa_saq.jsonl
+data/question_embeddings.npy
+
+# Notebook outputs
+notebooks/.ipynb_checkpoints/
+
+# VS Code / JetBrains
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
