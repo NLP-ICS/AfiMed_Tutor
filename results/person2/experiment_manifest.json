@@ -1,0 +1,8 @@
+{
+  "created_at": "2026-05-01T06:33:17.848702Z",
+  "git_revision": "0da454a",
+  "python": "3.10.19",
+  "notes": "Control variables held fixed across phases: dataset split (100-item test set), LLM_PROVIDER / OPENAI_MODEL / ANTHROPIC_MODEL per .env, EMBEDDING_PROVIDER, dense retriever.",
+  "smoke_limit": null,
+  "artifacts_root": "C:\\Users\\kwame\\AfriMed_Tutor\\artifacts\\corpus"
+}

@@ -1,0 +1,269 @@
+{
+  "by_condition": {
+    "e1_naive": {
+      "n": 100,
+      "accuracy": 0.66,
+      "latency_mean_ms": 1783.124,
+      "latency_std_ms": 504.53501288215864,
+      "input_tokens_mean": 1272.09,
+      "retrieval_top1_mean": 0.55408482,
+      "retrieval_top1_std": 0.0748291376351993,
+      "accuracy_by_specialty": {
+        "Surgery": 0.7,
+        "Obstetrics & Gynecology": 0.75,
+        "Pediatrics": 0.6,
+        "Infectious Disease": 0.65,
+        "Internal Medicine": 0.6
+      },
+      "accuracy_ci95_bootstrap": [
+        0.57,
+        0.75
+      ]
+    },
+    "e1_structure": {
+      "n": 100,
+      "accuracy": 0.64,
+      "latency_mean_ms": 1644.103,
+      "latency_std_ms": 506.8239685443063,
+      "input_tokens_mean": 2001.57,
+      "retrieval_top1_mean": 0.54324268,
+      "retrieval_top1_std": 0.07719390421476038,
+      "accuracy_by_specialty": {
+        "Surgery": 0.65,
+        "Obstetrics & Gynecology": 0.7,
+        "Pediatrics": 0.65,
+        "Infectious Disease": 0.65,
+        "Internal Medicine": 0.55
+      },
+      "accuracy_ci95_bootstrap": [
+        0.54,
+        0.73
+      ]
+    },
+    "e2_t100": {
+      "n": 100,
+      "accuracy": 0.63,
+      "latency_mean_ms": 1758.006,
+      "latency_std_ms": 567.1913720817693,
+      "input_tokens_mean": 2001.57,
+      "retrieval_top1_mean": 0.54325504,
+      "retrieval_top1_std": 0.07720614326164985,
+      "accuracy_by_specialty": {
+        "Surgery": 0.6,
+        "Obstetrics & Gynecology": 0.7,
+        "Pediatrics": 0.65,
+        "Infectious Disease": 0.65,
+        "Internal Medicine": 0.55
+      },
+      "accuracy_ci95_bootstrap": [
+        0.53,
+        0.72
+      ]
+    },
+    "e2_t200": {
+      "n": 100,
+      "accuracy": 0.63,
+      "latency_mean_ms": 1803.629,
+      "latency_std_ms": 656.1891247643472,
+      "input_tokens_mean": 2001.57,
+      "retrieval_top1_mean": 0.54325354,
+      "retrieval_top1_std": 0.07719916778442887,
+      "accuracy_by_specialty": {
+        "Surgery": 0.6,
+        "Obstetrics & Gynecology": 0.7,
+        "Pediatrics": 0.65,
+        "Infectious Disease": 0.65,
+        "Internal Medicine": 0.55
+      },
+      "accuracy_ci95_bootstrap": [
+        0.53,
+        0.72
+      ]
+    },
+    "e2_t400": {
+      "n": 100,
+      "accuracy": 0.63,
+      "latency_mean_ms": 1753.136,
+      "latency_std_ms": 402.7739990416462,
+      "input_tokens_mean": 2002.73,
+      "retrieval_top1_mean": 0.54324879,
+      "retrieval_top1_std": 0.07720834729824166,
+      "accuracy_by_specialty": {
+        "Surgery": 0.6,
+        "Obstetrics & Gynecology": 0.7,
+        "Pediatrics": 0.65,
+        "Infectious Disease": 0.65,
+        "Internal Medicine": 0.55
+      },
+      "accuracy_ci95_bootstrap": [
+        0.53,
+        0.72
+      ]
+    },
+    "e2_t800": {
+      "n": 100,
+      "accuracy": 0.63,
+      "latency_mean_ms": 1624.871,
+      "latency_std_ms": 428.2161090606004,
+      "input_tokens_mean": 2002.73,
+      "retrieval_top1_mean": 0.54325376,
+      "retrieval_top1_std": 0.0772044745871792,
+      "accuracy_by_specialty": {
+        "Surgery": 0.6,
+        "Obstetrics & Gynecology": 0.7,
+        "Pediatrics": 0.65,
+        "Infectious Disease": 0.65,
+        "Internal Medicine": 0.55
+      },
+      "accuracy_ci95_bootstrap": [
+        0.53,
+        0.72
+      ]
+    },
+    "e3_k1": {
+      "n": 100,
+      "accuracy": 0.63,
+      "latency_mean_ms": 2475.46,
+      "latency_std_ms": 1112.3723949289645,
+      "input_tokens_mean": 2002.73,
+      "retrieval_top1_mean": 0.5432581,
+      "retrieval_top1_std": 0.07719683075301731,
+      "accuracy_by_specialty": {
+        "Surgery": 0.6,
+        "Obstetrics & Gynecology": 0.7,
+        "Pediatrics": 0.65,
+        "Infectious Disease": 0.65,
+        "Internal Medicine": 0.55
+      },
+      "accuracy_ci95_bootstrap": [
+        0.53,
+        0.72
+      ]
+    },
+    "e3_k10": {
+      "n": 100,
+      "accuracy": 0.64,
+      "latency_mean_ms": 1820.692,
+      "latency_std_ms": 687.0109617291416,
+      "input_tokens_mean": 2002.73,
+      "retrieval_top1_mean": 0.54326382,
+      "retrieval_top1_std": 0.07719866180710389,
+      "accuracy_by_specialty": {
+        "Surgery": 0.65,
+        "Obstetrics & Gynecology": 0.7,
+        "Pediatrics": 0.65,
+        "Infectious Disease": 0.65,
+        "Internal Medicine": 0.55
+      },
+      "accuracy_ci95_bootstrap": [
+        0.54,
+        0.73
+      ]
+    },
+    "e3_k15": {
+      "n": 100,
+      "accuracy": 0.63,
+      "latency_mean_ms": 1832.786,
+      "latency_std_ms": 461.2903105464063,
+      "input_tokens_mean": 2001.57,
+      "retrieval_top1_mean": 0.54326326,
+      "retrieval_top1_std": 0.07719680673261298,
+      "accuracy_by_specialty": {
+        "Surgery": 0.6,
+        "Obstetrics & Gynecology": 0.7,
+        "Pediatrics": 0.65,
+        "Infectious Disease": 0.65,
+        "Internal Medicine": 0.55
+      },
+      "accuracy_ci95_bootstrap": [
+        0.53,
+        0.72
+      ]
+    },
+    "e3_k3": {
+      "n": 100,
+      "accuracy": 0.63,
+      "latency_mean_ms": 1848.237,
+      "latency_std_ms": 632.8364761381885,
+      "input_tokens_mean": 2002.73,
+      "retrieval_top1_mean": 0.54325431,
+      "retrieval_top1_std": 0.0771946337907882,
+      "accuracy_by_specialty": {
+        "Surgery": 0.6,
+        "Obstetrics & Gynecology": 0.7,
+        "Pediatrics": 0.65,
+        "Infectious Disease": 0.65,
+        "Internal Medicine": 0.55
+      },
+      "accuracy_ci95_bootstrap": [
+        0.53,
+        0.72
+      ]
+    },
+    "e3_k5": {
+      "n": 100,
+      "accuracy": 0.63,
+      "latency_mean_ms": 1928.063,
+      "latency_std_ms": 716.9275975515241,
+      "input_tokens_mean": 2002.73,
+      "retrieval_top1_mean": 0.54326083,
+      "retrieval_top1_std": 0.0771930737130029,
+      "accuracy_by_specialty": {
+        "Surgery": 0.6,
+        "Obstetrics & Gynecology": 0.7,
+        "Pediatrics": 0.65,
+        "Infectious Disease": 0.65,
+        "Internal Medicine": 0.55
+      },
+      "accuracy_ci95_bootstrap": [
+        0.53,
+        0.72
+      ]
+    }
+  },
+  "chunk_file_stats_by_condition": {
+    "e1_naive": {
+      "num_chunks": 9765,
+      "mean_words": 113.56487455197133,
+      "median_words": 115
+    },
+    "e1_structure": {
+      "num_chunks": 5635,
+      "mean_words": 144.67701863354037,
+      "median_words": 71
+    },
+    "e2_t100": {
+      "num_chunks": 5656,
+      "mean_words": 144.1621287128713,
+      "median_words": 71.0
+    },
+    "e2_t200": {
+      "num_chunks": 5654,
+      "mean_words": 144.20781747435444,
+      "median_words": 71.0
+    },
+    "e2_t400": {
+      "num_chunks": 5648,
+      "mean_words": 144.3555240793201,
+      "median_words": 71.0
+    },
+    "e2_t800": {
+      "num_chunks": 5635,
+      "mean_words": 144.67701863354037,
+      "median_words": 71
+    },
+    "e3_k1": {},
+    "e3_k10": {},
+    "e3_k15": {},
+    "e3_k3": {},
+    "e3_k5": {}
+  },
+  "e1": {
+    "mcnemar_primary_vs_naive": {
+      "discordant_wrong_right": 3,
+      "discordant_right_wrong": 1,
+      "n_discordant": 4,
+      "p_value": 0.625
+    }
+  }
+}

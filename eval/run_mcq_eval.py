@@ -8,6 +8,8 @@ Usage:
     python eval/run_mcq_eval.py
     python eval/run_mcq_eval.py --condition baseline
     python eval/run_mcq_eval.py --condition rag
+    python eval/run_mcq_eval.py --condition rag --rag-output results/person2/e2_t800/eval_rag.csv
+    python eval/run_mcq_eval.py --condition rag --limit 5
 """
 
 from __future__ import annotations
@@ -20,7 +22,6 @@ import os
 import time
 from pathlib import Path
 
-from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parent.parent / ".env", override=True)
@@ -119,6 +120,7 @@ def run_condition(
                 question=item.question, options=options_str
             )
             result = llm_client.complete(system=prompt, user="", max_tokens=10)
+            top1_retrieval = ""
         else:
             chunks = retriever.search(item.question)
             prompt = _RAG_PROMPT.format(
@@ -127,6 +129,9 @@ def run_condition(
                 options=options_str,
             )
             result = llm_client.complete(system=prompt, user="", max_tokens=10)
+            top1_retrieval = (
+                round(float(chunks[0].score), 6) if chunks else ""
+            )
 
         latency_ms = (time.perf_counter() - t0) * 1000
         predicted = _extract_answer(result.text)
@@ -142,13 +147,17 @@ def run_condition(
                 "latency_ms": round(latency_ms, 1),
                 "input_tokens": result.input_tokens,
                 "output_tokens": result.output_tokens,
+                "retrieval_top1_score": top1_retrieval,
             }
         )
     return rows
 
 
 def write_csv(rows: list[dict], path: Path) -> None:
-    path.parent.mkdir(exist_ok=True)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if not rows:
+        log.warning("No rows to write — skipping %s", path)
+        return
     with open(path, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
         writer.writeheader()
@@ -164,21 +173,45 @@ def main() -> None:
         choices=["baseline", "rag", "both"],
         default="both",
     )
+    parser.add_argument(
+        "--rag-output",
+        type=Path,
+        default=None,
+        help="CSV path for RAG condition (default: results/eval_rag.csv)",
+    )
+    parser.add_argument(
+        "--baseline-output",
+        type=Path,
+        default=None,
+        help="CSV path for baseline (default: results/eval_baseline.csv)",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Evaluate only the first N test items (smoke / debug)",
+    )
     args = parser.parse_args()
 
     items = load_test_items()
+    if args.limit is not None:
+        items = items[: max(0, args.limit)]
     log.info("Loaded %d test items.", len(items))
 
     llm_client = build_llm_client()
     retriever = build_retriever() if args.condition in ("rag", "both") else None
 
+    baseline_path = args.baseline_output or (RESULTS_DIR / "eval_baseline.csv")
+    rag_path = args.rag_output or (RESULTS_DIR / "eval_rag.csv")
+
     if args.condition in ("baseline", "both"):
         rows = run_condition("baseline", items, llm_client)
-        write_csv(rows, RESULTS_DIR / "eval_baseline.csv")
+        write_csv(rows, baseline_path)
 
     if args.condition in ("rag", "both"):
         rows = run_condition("rag", items, llm_client, retriever=retriever)
-        write_csv(rows, RESULTS_DIR / "eval_rag.csv")
+        write_csv(rows, rag_path)
 
 
 if __name__ == "__main__":

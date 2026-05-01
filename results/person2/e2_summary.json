@@ -1,0 +1,37 @@
+{
+  "conditions": [
+    {
+      "condition_id": "e2_t100",
+      "max_chunk_tokens": 100,
+      "accuracy": 0.63,
+      "mean_latency_ms": 1758.006,
+      "n_evaluated": 100,
+      "artifact_dir": "C:\\Users\\kwame\\AfriMed_Tutor\\artifacts\\corpus\\e2_t100"
+    },
+    {
+      "condition_id": "e2_t200",
+      "max_chunk_tokens": 200,
+      "accuracy": 0.63,
+      "mean_latency_ms": 1803.629,
+      "n_evaluated": 100,
+      "artifact_dir": "C:\\Users\\kwame\\AfriMed_Tutor\\artifacts\\corpus\\e2_t200"
+    },
+    {
+      "condition_id": "e2_t400",
+      "max_chunk_tokens": 400,
+      "accuracy": 0.63,
+      "mean_latency_ms": 1753.1360000000013,
+      "n_evaluated": 100,
+      "artifact_dir": "C:\\Users\\kwame\\AfriMed_Tutor\\artifacts\\corpus\\e2_t400"
+    },
+    {
+      "condition_id": "e2_t800",
+      "max_chunk_tokens": 800,
+      "accuracy": 0.63,
+      "mean_latency_ms": 1624.8710000000003,
+      "n_evaluated": 100,
+      "artifact_dir": "C:\\Users\\kwame\\AfriMed_Tutor\\artifacts\\corpus\\e2_t800"
+    }
+  ],
+  "best_condition_id": "e2_t800"
+}

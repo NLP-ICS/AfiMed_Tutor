@@ -71,7 +71,7 @@ class AnthropicClient:
 class OpenAIClient:
     def __init__(self, model: str | None = None) -> None:
         import openai  # lazy import
-        self.model = model or os.getenv("OPENAI_MODEL", "gpt-4o")
+        self.model = model or os.getenv("OPENAI_MODEL", "gpt-4o-mini")
         self._client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
     def complete(

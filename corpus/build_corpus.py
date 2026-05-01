@@ -10,20 +10,23 @@ Steps:
 
 Usage:
     python corpus/build_corpus.py [--naive] [--dry-run]
+    python corpus/build_corpus.py --max-chunk-tokens 200 --overlap-tokens 50
+    python corpus/build_corpus.py --naive --out-dir artifacts/corpus/e1_naive
+
+Environment (optional overrides for structure-aware naive limits):
+    MAX_CHUNK_TOKENS  — defaults to CLI or 800
+    OVERLAP_TOKENS    — defaults to CLI or 100
+    EMBEDDING_MAX_INPUT_TOKENS — OpenAI/Voyage ceiling per text (default 8000; max 8192)
 """
 
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import logging
 import os
 import re
-import sys
-import time
 from pathlib import Path
-from typing import Iterator
 
 import requests
 import yaml
@@ -172,15 +175,55 @@ def structure_aware_chunks(
     return chunks
 
 
+def naive_fixed_chunks_chars(
+    text: str,
+    source_doc: str,
+    window_chars: int = 800,
+    overlap_chars: int = 200,
+) -> list[dict]:
+    """Naive sliding-window chunker: fixed characters + overlap — no sections (E1 baseline)."""
+    chunks: list[dict] = []
+    if window_chars <= 0:
+        return chunks
+    overlap_chars = max(0, min(overlap_chars, window_chars - 1))
+    stride = window_chars - overlap_chars
+    if stride <= 0:
+        stride = window_chars
+
+    pos = 0
+    ci = 0
+    while pos < len(text):
+        end = min(pos + window_chars, len(text))
+        sub = text[pos:end]
+        if sub.strip():
+            chunks.append(
+                {
+                    "chunk_id": f"{source_doc}__naive_{ci:05d}",
+                    "text": sub.strip(),
+                    "source_doc": source_doc,
+                    "section_title": "(none)",
+                    "condition": None,
+                    "page_number": None,
+                }
+            )
+            ci += 1
+        pos += stride
+
+    return chunks
+
+
 def naive_fixed_chunks(
     text: str,
     source_doc: str,
     max_tokens: int = MAX_CHUNK_TOKENS,
 ) -> list[dict]:
-    """Baseline naive fixed-size chunker — no structure awareness."""
+    """Word-window naive baseline for unit tests (historical).
+
+    The CLI `--naive` flag uses naive_fixed_chunks_chars (800-char / 200-overlap per E1).
+    """
     words = text.split()
     chunks: list[dict] = []
-    step = max_tokens * 3 // 4  # ~75% of max, no overlap
+    step = max_tokens * 3 // 4
     for i in range(0, len(words), step):
         chunk_words = words[i : i + max_tokens * 3 // 4]
         if not chunk_words:
@@ -290,6 +333,90 @@ def download_sources(sources: list[dict]) -> dict[str, Path | None]:
 
 
 # ---------------------------------------------------------------------------
+# Embedding input budget — OpenAI / Voyage reject inputs >8192 tokens
+# ---------------------------------------------------------------------------
+
+_EMBED_ENCODING_NAME = "cl100k_base"  # OpenAI text-embedding-* family
+
+
+def _split_text_at_token_budget(text: str, enc, max_tokens: int) -> list[str]:
+    """Split `text` into pieces each with at most `max_tokens` tokenizer tokens."""
+    ids = enc.encode(text)
+    if len(ids) <= max_tokens:
+        t = text.strip()
+        return [t] if t else []
+    parts: list[str] = []
+    for start in range(0, len(ids), max_tokens):
+        chunk_ids = ids[start : start + max_tokens]
+        decoded = enc.decode(chunk_ids).strip()
+        if decoded:
+            parts.append(decoded)
+    return parts
+
+
+def enforce_embedding_input_budget(chunks: list[dict]) -> list[dict]:
+    """Ensure each chunk fits the active embedding API's maximum input length.
+
+    PDF extraction can yield huge space-free spans that evade heuristic chunk sizing;
+    tiktoken catches those before embedding.
+    """
+    provider = os.getenv("EMBEDDING_PROVIDER", "openai")
+    if provider not in {"openai", "voyage"}:
+        return chunks
+
+    try:
+        import tiktoken
+    except ImportError:
+        log.warning(
+            "tiktoken not installed — cannot enforce embedding input token ceiling; "
+            "install tiktoken or set EMBEDDING_PROVIDER=local."
+        )
+        return chunks
+
+    raw_budget = os.getenv("EMBEDDING_MAX_INPUT_TOKENS", "8000")
+    max_tokens = int(raw_budget)
+    max_tokens = max(256, min(max_tokens, 8192))
+
+    enc = tiktoken.get_encoding(_EMBED_ENCODING_NAME)
+    out: list[dict] = []
+    oversized_fixed = 0
+
+    for c in chunks:
+        text = c.get("text") or ""
+        if not text.strip():
+            continue
+        pieces = _split_text_at_token_budget(text, enc, max_tokens)
+        if len(pieces) <= 1:
+            if pieces:
+                normalized = dict(c)
+                normalized["text"] = pieces[0]
+                out.append(normalized)
+            continue
+        oversized_fixed += 1
+        base_id = str(c["chunk_id"])
+        for i, piece in enumerate(pieces):
+            row = dict(c)
+            row["chunk_id"] = f"{base_id}__emb{i:03d}"
+            row["text"] = piece
+            out.append(row)
+
+    if oversized_fixed:
+        log.warning(
+            "Split %d oversized chunks using %s tokenizer (≤%d tokens per embed for %s provider)",
+            oversized_fixed,
+            _EMBED_ENCODING_NAME,
+            max_tokens,
+            provider,
+        )
+    log.info(
+        "Chunks eligible for embedding: %d raw chunk records → %d after API budget enforcement",
+        len(chunks),
+        len(out),
+    )
+    return out
+
+
+# ---------------------------------------------------------------------------
 # Embedding
 # ---------------------------------------------------------------------------
 
@@ -350,11 +477,66 @@ def build_faiss_index(embeddings: list[list[float]]) -> "faiss.Index":
 # Main
 # ---------------------------------------------------------------------------
 
+def _resolve_output_paths(out_dir: Path | None) -> tuple[Path, Path, Path]:
+    if out_dir is None:
+        return CHUNKS_PATH, META_PATH, INDEX_PATH
+    out_dir = out_dir.resolve()
+    out_dir.mkdir(parents=True, exist_ok=True)
+    return out_dir / "chunks.jsonl", out_dir / "chunks_meta.jsonl", out_dir / "faiss.index"
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build AfriMed Tutor corpus")
-    parser.add_argument("--naive", action="store_true", help="Use naive fixed-size chunker")
+    parser.add_argument("--naive", action="store_true", help="Use naive char-window chunker (800 chars, 200 overlap)")
+    parser.add_argument(
+        "--naive-window-chars",
+        type=int,
+        default=800,
+        metavar="N",
+        help="Character window size for --naive (default: 800)",
+    )
+    parser.add_argument(
+        "--naive-overlap-chars",
+        type=int,
+        default=200,
+        metavar="N",
+        help="Overlap in characters for --naive (default: 200)",
+    )
     parser.add_argument("--dry-run", action="store_true", help="Skip embedding and indexing")
+    parser.add_argument(
+        "--max-chunk-tokens",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Max approximate tokens per chunk for structure-aware chunker "
+        "(or env MAX_CHUNK_TOKENS; default: 800)",
+    )
+    parser.add_argument(
+        "--overlap-tokens",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Overlap tokens for intra-section splitting "
+        "(or env OVERLAP_TOKENS; default: 100)",
+    )
+    parser.add_argument(
+        "--out-dir",
+        type=Path,
+        default=None,
+        metavar="DIR",
+        help="Write chunks.jsonl, chunks_meta.jsonl, and faiss.index here "
+        "(default: corpus/ under repo root)",
+    )
     args = parser.parse_args()
+
+    max_tokens = args.max_chunk_tokens
+    if max_tokens is None:
+        max_tokens = int(os.getenv("MAX_CHUNK_TOKENS", MAX_CHUNK_TOKENS))
+    overlap_tokens = args.overlap_tokens
+    if overlap_tokens is None:
+        overlap_tokens = int(os.getenv("OVERLAP_TOKENS", OVERLAP_TOKENS))
+
+    chunks_out, meta_out, index_out = _resolve_output_paths(args.out_dir)
 
     with open(SOURCES_PATH) as f:
         sources = yaml.safe_load(f)["sources"]
@@ -376,25 +558,35 @@ def main() -> None:
         full_text = "\n".join(text for _, text in pages)
 
         if args.naive:
-            chunks = naive_fixed_chunks(full_text, source_doc=sid)
+            chunks = naive_fixed_chunks_chars(
+                full_text,
+                source_doc=sid,
+                window_chars=args.naive_window_chars,
+                overlap_chars=args.naive_overlap_chars,
+            )
         else:
             chunks = structure_aware_chunks(
-                full_text, source_doc=sid, family=source_family.get(sid, "default")
+                full_text,
+                source_doc=sid,
+                family=source_family.get(sid, "default"),
+                max_tokens=max_tokens,
+                overlap_tokens=overlap_tokens,
             )
 
         # Attach page numbers where possible (best-effort: use page index as hint)
         log.info("  %d chunks from %s", len(chunks), sid)
         all_chunks.extend(chunks)
 
-    log.info("Total chunks: %d", len(all_chunks))
+    log.info("Total chunks (pre embedding-budget): %d", len(all_chunks))
+    all_chunks = enforce_embedding_input_budget(all_chunks)
 
     if args.dry_run:
         log.info("Dry-run: skipping embedding and indexing.")
         return
 
     # Save metadata
-    META_PATH.write_text("\n".join(json.dumps(c) for c in all_chunks), encoding="utf-8")
-    CHUNKS_PATH.write_text(
+    meta_out.write_text("\n".join(json.dumps(c) for c in all_chunks), encoding="utf-8")
+    chunks_out.write_text(
         "\n".join(json.dumps({"chunk_id": c["chunk_id"], "text": c["text"]}) for c in all_chunks),
         encoding="utf-8",
     )
@@ -406,8 +598,8 @@ def main() -> None:
 
     import faiss
     index = build_faiss_index(embeddings)
-    faiss.write_index(index, str(INDEX_PATH))
-    log.info("FAISS index saved to %s (%d vectors, dim=%d)", INDEX_PATH, index.ntotal, index.d)
+    faiss.write_index(index, str(index_out))
+    log.info("FAISS index saved to %s (%d vectors, dim=%d)", index_out, index.ntotal, index.d)
 
 
 if __name__ == "__main__":

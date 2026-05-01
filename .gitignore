@@ -13,6 +13,8 @@ corpus/raw/
 corpus/faiss.index
 corpus/chunks.jsonl
 corpus/chunks_meta.jsonl
+artifacts/**/*.index
+artifacts/**/*.jsonl
 
 # Data artifacts
 data/afrimedqa_mcq_pool.jsonl

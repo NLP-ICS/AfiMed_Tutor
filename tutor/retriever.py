@@ -22,6 +22,15 @@ CHUNKS_META_PATH = _REPO_ROOT / "corpus" / "chunks_meta.jsonl"
 FAISS_INDEX_PATH = _REPO_ROOT / "corpus" / "faiss.index"
 
 
+def _resolve_corpus_artifact_paths() -> tuple[Path, Path]:
+    """Optional experiment override: CORPUS_ARTIFACT_DIR with faiss.index + chunks_meta.jsonl."""
+    root = os.getenv("CORPUS_ARTIFACT_DIR")
+    if root:
+        base = Path(root).expanduser().resolve()
+        return base / "faiss.index", base / "chunks_meta.jsonl"
+    return FAISS_INDEX_PATH, CHUNKS_META_PATH
+
+
 @runtime_checkable
 class Retriever(Protocol):
     def search(self, query: str, k: int = 5) -> list[Chunk]: ...
@@ -78,11 +87,15 @@ class DenseRetriever:
 
     def __init__(
         self,
-        index_path: Path = FAISS_INDEX_PATH,
-        chunks_meta_path: Path = CHUNKS_META_PATH,
+        index_path: Path | None = None,
+        chunks_meta_path: Path | None = None,
         threshold: float | None = None,
     ) -> None:
         import faiss
+
+        idx_default, meta_default = _resolve_corpus_artifact_paths()
+        index_path = index_path or idx_default
+        chunks_meta_path = chunks_meta_path or meta_default
 
         self.threshold = threshold if threshold is not None else float(
             os.getenv("RETRIEVER_THRESHOLD", "0.30")
@@ -129,8 +142,11 @@ class DenseRetriever:
 class SparseRetriever:
     """BM25 over chunk texts using rank_bm25."""
 
-    def __init__(self, chunks_meta_path: Path = CHUNKS_META_PATH) -> None:
+    def __init__(self, chunks_meta_path: Path | None = None) -> None:
         from rank_bm25 import BM25Okapi
+
+        _, meta_default = _resolve_corpus_artifact_paths()
+        chunks_meta_path = chunks_meta_path or meta_default
 
         self._meta: list[dict] = []
         with open(chunks_meta_path) as f:
